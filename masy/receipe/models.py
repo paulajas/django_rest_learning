@@ -1,13 +1,46 @@
 from datetime import datetime
+from pyexpat import model
+from tkinter import CASCADE
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 import functools
+from polymorphic.models import PolymorphicModel
 
 # # Create your models here.
 
-class Receipe(models.Model):
+class CookBookReceipe(models.Model):
+    cookbook = models.ForeignKey("CookBook", on_delete=CASCADE) 
+    receipe = models.ForeignKey("Receipe", on_delete=CASCADE)
+    class RatioChoice(models.IntegerChoices):
+        BAD = 1
+        LOWER_MEDIUM = 2
+        MEDIUM =3
+        LOWER_GOOD = 4
+        GOOD = 5
+        EXCELENT = 6
+    ratio = models.IntegerField(choices=RatioChoice.choices) # asocjacja z atrybutem
+
+
+class PictureReceipe(models.Model):
+    Picture = models.ForeignKey("Picture", to_field="image_no", on_delete=CASCADE)
+    Receipe = models.ForeignKey("Receipe", on_delete=CASCADE) 
+
+
+class ReceipeQuerySet(models.QuerySet):
+
+    def delete(self, *args, **kwargs):
+        for obj in self:
+            if Receipe.objects.filter(country=obj.country):
+                super(ReceipeQuerySet, self).delete(*args, **kwargs)
+            else:
+                obj.country.delete()
+                super(ReceipeQuerySet, self).delete(*args, **kwargs)
+
+
+class Receipe(PolymorphicModel):
+    objects = ReceipeQuerySet.as_manager()
     version = 1 #atr. klasowy
     class Choices(models.TextChoices):
         EASY = "easy", _("Easy to make")
@@ -22,7 +55,21 @@ class Receipe(models.Model):
     for_children = models.BooleanField(default=True)
     make_date = models.DateField() 
     days_from_add = models.DurationField(null=True) # wyliczalny atrybut pochodny
-    
+    tag = models.ManyToManyField("Tag") # zwykła
+    picture=models.ForeignKey("Picture", to_field="image_no") #asocjacja kwalifikowana
+    cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe") # asocjacja z atrybutem
+    country = models.ForeignKey("Country", on_delete=models.CASCADE) #kompozycja
+    # część nie może być współdzielona - foreign key,
+    # część nie może istnieć bez całości - nie dopuszczam null,
+    # gdy usuwam całość usuwają się również jej części - on_delete= CASCADE
+
+    def delete(self, *args, **kwargs):
+        if Receipe.objects.filter(country=self.country):
+            super(ReceipeQuerySet, self).delete(*args, **kwargs)
+        else:
+            self.country.delete()
+            super(ReceipeQuerySet, self).delete(*args, **kwargs)
+
     # def clean(self):
     #     if self.kcal < 0:
     #         raise ValidationError("It must contains kcal")
@@ -74,3 +121,42 @@ class VegeReceipe(Receipe):
         return VegeReceipe.objects.get(name=arg)
 
 
+class BreakfastReceipe(Receipe):
+    sweet = models.BooleanField(default=False)
+
+
+class LunchReceipe(Receipe):
+    digest_hard=models.BooleanField(default=False)
+
+
+class DinnerReceipe(Receipe):
+    before_bed_time = models.TimeField()
+
+
+class SnackReceipe(Receipe):
+    sweet = models.BooleanField()
+    boiled = models.BooleanField()
+
+
+class Picture(models.Model):
+    image = models.ImageField() #add directory for upload
+    receipe = models.ManyToManyField("Receipe", through=PictureReceipe)
+    image_no = models.IntegerField(unique=True) # asocjacja kwalifikowana
+
+
+class CookBook(models.Model):
+    name = models.CharField(max_length=30)
+    public = models.BooleanField(default=False)
+    receipe = models.ManyToManyField(Receipe, through=CookBookReceipe)
+    # many to many via class
+
+
+class Country(models.Model):
+    receipe = models.ManyToManyField("CountryReceipe")
+    # one to many with receipe - agregation -> Composition, because of lack of null, on_delete=CASCADE and ForeignKey
+    name = models.CharField()
+
+
+class Tag(models.Model):
+    receipe = models.ManyToManyField("Receipe") #zwykła
+    name = models.CharField()
