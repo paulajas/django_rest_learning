@@ -7,12 +7,13 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.postgres.fields import ArrayField
 import functools
 from polymorphic.models import PolymorphicModel
+from polymorphic.query import PolymorphicQuerySet
 
 # # Create your models here.
 
 class CookBookReceipe(models.Model):
-    cookbook = models.ForeignKey("CookBook", on_delete=CASCADE) 
-    receipe = models.ForeignKey("Receipe", on_delete=CASCADE)
+    cookbook = models.ForeignKey("CookBook", on_delete=models.CASCADE) 
+    receipe = models.ForeignKey("Receipe", on_delete=models.CASCADE)
     class RatioChoice(models.IntegerChoices):
         BAD = 1
         LOWER_MEDIUM = 2
@@ -23,12 +24,16 @@ class CookBookReceipe(models.Model):
     ratio = models.IntegerField(choices=RatioChoice.choices) # asocjacja z atrybutem
 
 
-class PictureReceipe(models.Model):
-    Picture = models.ForeignKey("Picture", to_field="image_no", on_delete=CASCADE)
-    Receipe = models.ForeignKey("Receipe", on_delete=CASCADE) 
+# class CountryReceipe(models.Model):
+#     to_receipe = models.ForeignKey("Receipe", on_delete=models.CASCADE)
+#     to_country = models.ForeignKey("Country", on_delete=models.CASCADE)
+
+# class PictureReceipe(models.Model):
+#     picture = models.ForeignKey("Picture", to_field="image_no", on_delete=models.CASCADE)
+#     receipe = models.ForeignKey("Receipe", on_delete=models.CASCADE) 
 
 
-class ReceipeQuerySet(models.QuerySet):
+class ReceipeQuerySet(PolymorphicQuerySet):
 
     def delete(self, *args, **kwargs):
         for obj in self:
@@ -50,13 +55,13 @@ class Receipe(PolymorphicModel):
     make_time = models.IntegerField(null=True)
     hard_level = models.CharField(max_length=6, choices=Choices.choices) # atrybut złożony
     kcal = models.IntegerField(null=True) # atr. opcjonalny
-    receipe = models.TextField(null=True)
+    text_receipe = models.TextField(null=True)
     alergens = ArrayField(models.CharField(max_length=200), blank=True, null=True) # atr. powtarzalny
     for_children = models.BooleanField(default=True)
     make_date = models.DateField() 
     days_from_add = models.DurationField(null=True) # wyliczalny atrybut pochodny
-    tag = models.ManyToManyField("Tag") # zwykła
-    picture=models.ForeignKey("Picture", to_field="image_no") #asocjacja kwalifikowana
+    
+    picture=models.ForeignKey("Picture", on_delete=models.SET_NULL, null=True, blank=True, to_field="image_no") #asocjacja kwalifikowana
     cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe") # asocjacja z atrybutem
     country = models.ForeignKey("Country", on_delete=models.CASCADE) #kompozycja
     # część nie może być współdzielona - foreign key,
@@ -74,8 +79,8 @@ class Receipe(PolymorphicModel):
     #     if self.kcal < 0:
     #         raise ValidationError("It must contains kcal")
 
-    class Meta:
-        abstract = True
+    # class Meta:
+    #     abstract = True
     
     def __str__(self):
         return f"Receipe {self.name}"
@@ -88,6 +93,7 @@ class Receipe(PolymorphicModel):
 class MeatReceipe(Receipe):
     meat_kind = models.CharField(max_length=200)
     meat_type = models.CharField(max_length=200)
+    tag = models.ManyToManyField("Tag") # zwykła
     # meat_kind_counter
     def __str__(self):                                # przesłonięcie metody
         return f"Meat receipe {self.name}"
@@ -121,42 +127,42 @@ class VegeReceipe(Receipe):
         return VegeReceipe.objects.get(name=arg)
 
 
-class BreakfastReceipe(Receipe):
-    sweet = models.BooleanField(default=False)
+# class BreakfastReceipe(Receipe):
+#     sweet = models.BooleanField(default=False)
 
 
-class LunchReceipe(Receipe):
-    digest_hard=models.BooleanField(default=False)
+# class LunchReceipe(Receipe):
+#     digest_hard=models.BooleanField(default=False)
 
 
-class DinnerReceipe(Receipe):
-    before_bed_time = models.TimeField()
+# class DinnerReceipe(Receipe):
+#     before_bed_time = models.TimeField()
 
 
-class SnackReceipe(Receipe):
-    sweet = models.BooleanField()
-    boiled = models.BooleanField()
+# class SnackReceipe(Receipe):
+#     sweet = models.BooleanField()
+#     boiled = models.BooleanField()
 
 
 class Picture(models.Model):
-    image = models.ImageField() #add directory for upload
-    receipe = models.ManyToManyField("Receipe", through=PictureReceipe)
-    image_no = models.IntegerField(unique=True) # asocjacja kwalifikowana
+    image = models.ImageField(null=True, blank=True) #add directory for upload
+    # to_receipe = models.ManyToManyField("Receipe", through=PictureReceipe)
+    image_no = models.CharField(max_length=10, unique=True) # asocjacja kwalifikowana
 
 
 class CookBook(models.Model):
     name = models.CharField(max_length=30)
     public = models.BooleanField(default=False)
-    receipe = models.ManyToManyField(Receipe, through=CookBookReceipe)
+    # receipe = models.ManyToManyField(Receipe, through=CookBookReceipe)
     # many to many via class
 
 
 class Country(models.Model):
-    receipe = models.ManyToManyField("CountryReceipe")
+    # to_receipe = models.ManyToManyField("CountryReceipe")
     # one to many with receipe - agregation -> Composition, because of lack of null, on_delete=CASCADE and ForeignKey
-    name = models.CharField()
+    name = models.CharField(max_length=300)
 
 
 class Tag(models.Model):
-    receipe = models.ManyToManyField("Receipe") #zwykła
-    name = models.CharField()
+    # receipe = models.ManyToManyField("MeatReceipe") #zwykła
+    name = models.CharField(max_length=300)
