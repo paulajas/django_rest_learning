@@ -9,6 +9,8 @@ import functools
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
 
+from masy.masy import settings
+
 # # Create your models here.
 
 class CookBookReceipe(models.Model):
@@ -64,9 +66,13 @@ class Receipe(PolymorphicModel):
     picture=models.ForeignKey("Picture", on_delete=models.SET_NULL, null=True, blank=True, to_field="image_no") #asocjacja kwalifikowana
     cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe") # asocjacja z atrybutem
     country = models.ForeignKey("Country", on_delete=models.CASCADE) #kompozycja
+    tag = models.ManyToManyField("Tag") # zwykła
     # część nie może być współdzielona - foreign key,
     # część nie może istnieć bez całości - nie dopuszczam null,
     # gdy usuwam całość usuwają się również jej części - on_delete= CASCADE
+
+    # class Meta:
+    #     abstract=True
 
     def delete(self, *args, **kwargs):
         if Receipe.objects.filter(country=self.country):
@@ -91,16 +97,17 @@ class Receipe(PolymorphicModel):
 
 
 class MeatReceipe(Receipe):
-    meat_kind = models.CharField(max_length=200)
-    meat_type = models.CharField(max_length=200)
-    tag = models.ManyToManyField("Tag") # zwykła
+    meat_kind = models.CharField(max_length=200, null=True, blank=True)
+    meat_type = models.CharField(max_length=200, null=True, blank=True)
+    
     # meat_kind_counter
     def __str__(self):                                # przesłonięcie metody
         return f"Meat receipe {self.name}"
 
 class VegeReceipe(Receipe):
-    protein_type = models.CharField(max_length=200)
-    vege_type = models.CharField(max_length=200)
+    protein_type = models.CharField(max_length=200, null=True)
+    vege_type = models.CharField(max_length=200, blank=True)
+
     def __str__(self):
         return f"Vege receipe {self.name}"
 
@@ -127,42 +134,51 @@ class VegeReceipe(Receipe):
         return VegeReceipe.objects.get(name=arg)
 
 
-# class BreakfastReceipe(Receipe):
-#     sweet = models.BooleanField(default=False)
+class BreakfastReceipe(Receipe):
+    sweet = models.BooleanField(default=False)
+    class ChoiceBreakfast(models.TextChoices): # dynamic inheritance
+        DAIRY = "dairy", _("Including dairy")
+        MEAT = "meat", _("Including meat")
+    kind = models.CharField(max_length=6, choices=ChoiceBreakfast.choices)
 
 
-# class LunchReceipe(Receipe):
-#     digest_hard=models.BooleanField(default=False)
+class LunchReceipe(Receipe):
+    digest_hard=models.BooleanField(default=False)
+    to_microwave=models.BooleanField(default=False)
 
 
-# class DinnerReceipe(Receipe):
-#     before_bed_time = models.TimeField()
+class DinnerReceipe(Receipe):
+    before_bed_time = models.TimeField()
 
 
-# class SnackReceipe(Receipe):
-#     sweet = models.BooleanField()
-#     boiled = models.BooleanField()
+class SnackReceipe(Receipe):
+    sweet = models.BooleanField()
+    boiled = models.BooleanField()
 
 
 class Picture(models.Model):
     image = models.ImageField(null=True, blank=True) #add directory for upload
-    # to_receipe = models.ManyToManyField("Receipe", through=PictureReceipe)
     image_no = models.CharField(max_length=10, unique=True) # asocjacja kwalifikowana
 
 
 class CookBook(models.Model):
     name = models.CharField(max_length=30)
     public = models.BooleanField(default=False)
-    # receipe = models.ManyToManyField(Receipe, through=CookBookReceipe)
-    # many to many via class
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
 
 class Country(models.Model):
-    # to_receipe = models.ManyToManyField("CountryReceipe")
-    # one to many with receipe - agregation -> Composition, because of lack of null, on_delete=CASCADE and ForeignKey
     name = models.CharField(max_length=300)
 
 
 class Tag(models.Model):
-    # receipe = models.ManyToManyField("MeatReceipe") #zwykła
     name = models.CharField(max_length=300)
+
+
+
+# ArrayField of ForeingKeys
