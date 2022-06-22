@@ -1,6 +1,4 @@
 from datetime import datetime
-from pyexpat import model
-from tkinter import CASCADE
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -8,8 +6,8 @@ from django.contrib.postgres.fields import ArrayField
 import functools
 from polymorphic.models import PolymorphicModel
 from polymorphic.query import PolymorphicQuerySet
+from django.conf import settings
 
-from masy.masy import settings
 
 # # Create your models here.
 
@@ -26,28 +24,7 @@ class CookBookReceipe(models.Model):
     ratio = models.IntegerField(choices=RatioChoice.choices) # asocjacja z atrybutem
 
 
-# class CountryReceipe(models.Model):
-#     to_receipe = models.ForeignKey("Receipe", on_delete=models.CASCADE)
-#     to_country = models.ForeignKey("Country", on_delete=models.CASCADE)
-
-# class PictureReceipe(models.Model):
-#     picture = models.ForeignKey("Picture", to_field="image_no", on_delete=models.CASCADE)
-#     receipe = models.ForeignKey("Receipe", on_delete=models.CASCADE) 
-
-
-class ReceipeQuerySet(PolymorphicQuerySet):
-
-    def delete(self, *args, **kwargs):
-        for obj in self:
-            if Receipe.objects.filter(country=obj.country):
-                super(ReceipeQuerySet, self).delete(*args, **kwargs)
-            else:
-                obj.country.delete()
-                super(ReceipeQuerySet, self).delete(*args, **kwargs)
-
-
 class Receipe(PolymorphicModel):
-    objects = ReceipeQuerySet.as_manager()
     version = 1 #atr. klasowy
     class Choices(models.TextChoices):
         EASY = "easy", _("Easy to make")
@@ -57,37 +34,20 @@ class Receipe(PolymorphicModel):
     make_time = models.IntegerField(null=True)
     hard_level = models.CharField(max_length=6, choices=Choices.choices) # atrybut złożony
     kcal = models.IntegerField(null=True) # atr. opcjonalny
-    text_receipe = models.TextField(null=True)
+    text_receipe = models.TextField()
     alergens = ArrayField(models.CharField(max_length=200), blank=True, null=True) # atr. powtarzalny
     for_children = models.BooleanField(default=True)
-    make_date = models.DateField() 
-    days_from_add = models.DurationField(null=True) # wyliczalny atrybut pochodny
+    make_date = models.DateField(null=True, blank=True) 
+    days_from_add = models.DurationField(null=True, blank=True) # wyliczalny atrybut pochodny
     
     picture=models.ForeignKey("Picture", on_delete=models.SET_NULL, null=True, blank=True, to_field="image_no") #asocjacja kwalifikowana
     cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe") # asocjacja z atrybutem
     country = models.ForeignKey("Country", on_delete=models.CASCADE) #kompozycja
-    tag = models.ManyToManyField("Tag") # zwykła
+    tag = models.ManyToManyField("TagCountry", related_name="tag_country_id", blank=True) # zwykła
     # część nie może być współdzielona - foreign key,
     # część nie może istnieć bez całości - nie dopuszczam null,
     # gdy usuwam całość usuwają się również jej części - on_delete= CASCADE
 
-    # class Meta:
-    #     abstract=True
-
-    def delete(self, *args, **kwargs):
-        if Receipe.objects.filter(country=self.country):
-            super(ReceipeQuerySet, self).delete(*args, **kwargs)
-        else:
-            self.country.delete()
-            super(ReceipeQuerySet, self).delete(*args, **kwargs)
-
-    # def clean(self):
-    #     if self.kcal < 0:
-    #         raise ValidationError("It must contains kcal")
-
-    # class Meta:
-    #     abstract = True
-    
     def __str__(self):
         return f"Receipe {self.name}"
 
@@ -99,10 +59,20 @@ class Receipe(PolymorphicModel):
 class MeatReceipe(Receipe):
     meat_kind = models.CharField(max_length=200, null=True, blank=True)
     meat_type = models.CharField(max_length=200, null=True, blank=True)
-    
-    # meat_kind_counter
+
     def __str__(self):                                # przesłonięcie metody
         return f"Meat receipe {self.name}"
+
+    
+    @functools.singledispatchmethod # przeciążanie metod
+    def find_receipe(self, args):
+        raise NotImplementedError()
+    @find_receipe.register
+    def _(self, arg: int):
+        return MeatReceipe.objects.get(pk=arg)
+    @find_receipe.register
+    def _(self, arg: str):
+        return MeatReceipe.objects.get(meat_kind=arg)
 
 class VegeReceipe(Receipe):
     protein_type = models.CharField(max_length=200, null=True)
@@ -170,15 +140,35 @@ class CookBook(models.Model):
         blank=True,
         null=True,
     )
+    class Meta:
+        permissions = (
+            ('change_book', 'Can change book'),
+        )
 
 
 class Country(models.Model):
     name = models.CharField(max_length=300)
+    def __str__(self):
+        return f"{self.name}"
+
+
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=300)
+    tag_text = models.CharField(max_length=300)
+    class Meta:
+        abstract=True
 
+class TagCountry(Tag, Country):
+    name_in_country_language = models.CharField(max_length=300)
+    name_in_english = models.CharField(max_length=300)
 
+    @classmethod
+    def search_name_in_country(cls, country_id):
+        return Receipe.objects.filter(country=country_id)
+
+    @classmethod
+    def search_name_in_english(cls, obj):
+        return Receipe.objects.filter(tag=obj)
 
 # ArrayField of ForeingKeys
