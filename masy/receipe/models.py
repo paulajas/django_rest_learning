@@ -41,7 +41,7 @@ class Receipe(PolymorphicModel):
     days_from_add = models.DurationField(null=True, blank=True) # wyliczalny atrybut pochodny
     
     picture=models.ForeignKey("Picture", on_delete=models.SET_NULL, null=True, blank=True, to_field="image_no") #asocjacja kwalifikowana
-    cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe") # asocjacja z atrybutem
+    cookbook = models.ManyToManyField("CookBook", through="CookBookReceipe")
     country = models.ForeignKey("Country", on_delete=models.CASCADE) #kompozycja
     tag = models.ManyToManyField("TagCountry", related_name="tag_country_id", blank=True) # zwykła
     # część nie może być współdzielona - foreign key,
@@ -59,7 +59,7 @@ class Receipe(PolymorphicModel):
 class MeatReceipe(Receipe):
     meat_kind = models.CharField(max_length=200, null=True, blank=True)
     meat_type = models.CharField(max_length=200, null=True, blank=True)
-
+     # asocjacja z atrybutem
     def __str__(self):                                # przesłonięcie metody
         return f"Meat receipe {self.name}"
 

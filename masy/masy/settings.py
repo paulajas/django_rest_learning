@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'masy.wsgi.application'
 DATABASES = {
     'default': {
     "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "masy",
+        "NAME": "masy_2",
         "USER": "postgres",
         "PASSWORD": "postgres",
         "HOST": "localhost",

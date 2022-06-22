@@ -1,8 +1,12 @@
 from django.contrib import admin
 from guardian.admin import GuardedModelAdmin
 from guardian.shortcuts import get_objects_for_user
+from receipe.models import CookBookReceipe
 
 from receipe.models import CookBook
+
+class CookBookReceipeInLine(admin.TabularInline):
+        model=CookBookReceipe
 
 class CookBookAdmin(GuardedModelAdmin):
     list_display = ("name",)
@@ -31,3 +35,7 @@ class CookBookAdmin(GuardedModelAdmin):
     def save_new(self, request, obj, form, change):
         obj.user = request.user
         super().save_new(request, obj, form, change)
+
+    inlines = (CookBookReceipeInLine,)
+
+    
