@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'polymorphic',
     "django_extensions",
     "guardian",
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
