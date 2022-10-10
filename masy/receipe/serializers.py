@@ -1,4 +1,4 @@
-from .models import Country, Picture
+from .models import City, Country, Picture, TagCountry
 from rest_framework import serializers
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -37,6 +37,15 @@ class CountrySerializer(serializers.ModelSerializer):
             return data
 
 
+class CitySerializer(serializers.ModelSerializer):
+    country = serializers.HyperlinkedRelatedField(
+        read_only=True,
+        view_name='country-list')
+    class Meta:
+        model=City
+        fields = "__all__"
+
+
 class PictureSerializer(serializers.Serializer):
 
     def image_name(self, value):
@@ -55,4 +64,22 @@ class PictureSerializer(serializers.Serializer):
         instance.image_no = validated_data.get("image_no", instance.image_no)
         instance.save()
         return instance
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields=('id', 'tag_text')
+        abstract=True
+
+class TagCountrySerializer(TagSerializer):
+    # country = CountrySerializer(read_only=True)
+    # country = serializers.StringRelatedField()
+    # country = serializers.PrimaryKeyRelatedField(read_only=True)
+    country = serializers.HyperlinkedRelatedField(
+        lookup_field ='',
+        read_only=True,
+        view_name='country-list')
+    class Meta:
+        model=TagCountry
+        fields = TagSerializer.Meta.fields + ("name_in_country_language", "name_in_english", "country")
+
 

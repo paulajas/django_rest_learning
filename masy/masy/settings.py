@@ -12,6 +12,21 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
+
+
+def get_env_variable(name):
+    """
+    Gets the environment variable or throws ImproperlyConfigured exception
+    :rtype: object
+    """
+    try:
+        return os.environ[name]
+    except KeyError:
+        raise ImproperlyConfigured(
+            "Environment variable “%s” not found." % name
+        )
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +58,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "guardian",
     'crispy_forms',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -84,7 +100,7 @@ DATABASES = {
     "ENGINE": "django.db.backends.postgresql_psycopg2",
         "NAME": "masy_2",
         "USER": "postgres",
-        "PASSWORD": "postgres",
+        "PASSWORD": get_env_variable("PASS_DB"),
         "HOST": "localhost",
         "PORT": 5432,
     }

@@ -159,9 +159,10 @@ class Tag(models.Model):
     class Meta:
         abstract=True
 
-class TagCountry(Tag, Country):
+class TagCountry(Tag):
     name_in_country_language = models.CharField(max_length=300)
     name_in_english = models.CharField(max_length=300)
+    country = models.ForeignKey("Country", on_delete=models.CASCADE)
 
     @classmethod
     def search_name_in_country(cls, country_id):
@@ -171,4 +172,12 @@ class TagCountry(Tag, Country):
     def search_name_in_english(cls, obj):
         return Receipe.objects.filter(tag=obj)
 
-# ArrayField of ForeingKeys
+
+class City(models.Model):
+    name=models.TextField()
+    country=models.ForeignKey("Country", on_delete=models.CASCADE)
+
+
+class Animal(models.Model):
+    kind=models.TextField()
+    

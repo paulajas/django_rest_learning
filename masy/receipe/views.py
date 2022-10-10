@@ -3,8 +3,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import redirect, render
 from rest_framework.decorators import api_view
+from receipe.models import City
+from receipe.models import TagCountry
 from receipe.models import Country, Picture
-from .serializers import CountrySerializer, PictureSerializer
+from .serializers import CitySerializer, CountrySerializer, PictureSerializer, TagCountrySerializer
 
 # from receipe.serializers import CookBookSerializer
 # from django.contrib.auth import login, authenticate
@@ -14,11 +16,36 @@ from receipe.models import CookBook
 from rest_framework.views import APIView
 
 
+class CityAV(APIView):
+    def get(self, request):
+        try:
+            tag = City.objects.all()
+            serializer = CitySerializer(tag, many=True, context={'request': request})
+            return Response(serializer.data)
+        except City.DoesNotExist:
+            return Response({"error: Nothing to show"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class TagAV(APIView):
+    def get(self, request):
+        try:
+            tag = TagCountry.objects.all()
+            serializer = TagCountrySerializer(tag, many=True)
+            return Response(serializer.data)
+        except TagCountry.DoesNotExist:
+            return Response({"error: Nothing to show"}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request):
+        serializer=TagCountrySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+
 class CountryAV(APIView):
 
     def get(self,request):
         country = Country.objects.all()
-        serializer = CountrySerializer(country, many=True)
+        serializer = CountrySerializer(country, many=True, context={'request': request})
         return Response(serializer.data)
     
     def post(self, request):

@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import AdminSite
+from receipe.models import City
+from receipe.models import TagCountry
 from receipe.admin.MeatReceipe import MeatReceipeAdmin
 from receipe.models import BreakfastReceipe, DinnerReceipe, LunchReceipe, SnackReceipe, VegeReceipe
 from receipe.models import CookBook
@@ -37,3 +39,5 @@ receipe_interface_admin_site.register(BreakfastReceipe)
 receipe_interface_admin_site.register(LunchReceipe)
 receipe_interface_admin_site.register(DinnerReceipe)
 receipe_interface_admin_site.register(SnackReceipe)
+receipe_interface_admin_site.register(TagCountry)
+receipe_interface_admin_site.register(City)

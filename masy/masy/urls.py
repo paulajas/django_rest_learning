@@ -14,12 +14,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from receipe.views import CityAV
+from receipe.views import TagAV
+from receipe.views import CountryAV, CountryDetailAV
+# from receipe.views import cookbook_list
 from receipe.admin.admin import receipe_interface_admin_site
 from receipe.views import register
+from receipe.views import picture_list
+# from receipe.views import country_list, country_detail,
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("receipe/", receipe_interface_admin_site.urls),
     path("", register, name="register"),
+    path('api-auth/', include('rest_framework.urls')),
+    # path('country/', country_list, name='country-list'),
+    # path('country/<int:pk>', country_detail, name='country-detail'),
+    path('picture/', picture_list, name="picture-list"),
+    # path('cookbook/', cookbook_list, name='cookbooks')
+    path('country/', CountryAV.as_view(), name='country-list-detail'),
+    path('city/', CityAV.as_view(), name='city-list-detail'),
+    path("country/<int:pk>", CountryDetailAV.as_view(), name='country-detail'),
+    path('tag/', TagAV.as_view(), name='tag-list'),
+    
 ]
