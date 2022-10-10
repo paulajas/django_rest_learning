@@ -12,11 +12,9 @@ data/output
 *.xlsx
 *.xls
 *.7z
+*.pyc
 !requirements.txt
-!*original_data_tree.txt
 *.pickle
-/modules
-/notebooks
 db.sqlite3
-orm_approach/modules/consts/orm_list.py
-orm_approach/log/log.log
+
+
