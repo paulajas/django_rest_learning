@@ -40,7 +40,7 @@ class CountrySerializer(serializers.ModelSerializer):
 class CitySerializer(serializers.ModelSerializer):
     country = serializers.HyperlinkedRelatedField(
         read_only=True,
-        view_name='country-list')
+        view_name='country-detail')
     class Meta:
         model=City
         fields = "__all__"
