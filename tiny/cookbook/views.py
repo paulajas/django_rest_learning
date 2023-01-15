@@ -138,7 +138,8 @@ class ReceipeCookbookAV(APIView):
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self,request,pk):
+    def delete(self,request):
+        return Response(status=status.HTTP_200_OK)
         receipe = ReceipeCookbook.objects.get(pk=pk)
         receipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -230,14 +231,6 @@ class ReceipeCookbookDetailAV(APIView):
         item = ReceipeCookbook.objects.get(pk=pk)
         serializer = ReceipeCookbookSerializer(item)
         return Response({'serializer':serializer, 'item': item})
-
-    def post(self, request, pk):
-        item = ReceipeCookbook.objects.get(pk=pk)
-        serializer = ReceipeCookbookSerializer(item, data=request.data, context={'request': request})
-        if not serializer.is_valid():
-            return Response({'serializer': serializer, 'profile': item})
-        serializer.save()
-        return redirect('receipe-cookbook-list')
     
     def put(self, request, pk):
         country = ReceipeCookbook.objects.get(pk=pk)
@@ -252,6 +245,19 @@ class ReceipeCookbookDetailAV(APIView):
         country = ReceipeCookbook.objects.get(pk=pk)
         country.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def post(self, request, pk):
+        if request._full_data['_METHOD'] == 'PUT':
+            self.put(request,pk)
+        elif request._full_data['_METHOD'] == 'DELETE':
+            self.delete(request, pk)
+        else: 
+            item = ReceipeCookbook.objects.get(pk=pk)
+            serializer = ReceipeCookbookSerializer(item, data=request.data, context={'request': request})
+            if not serializer.is_valid():
+                return Response({'serializer': serializer, 'profile': item})
+            serializer.save()
+        return redirect('receipe-cookbook-list')
 
 class ReceipeCookbookNewAV(APIView):
 

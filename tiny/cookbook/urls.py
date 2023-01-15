@@ -26,9 +26,9 @@ urlpatterns = [
     # path("cookbook/<int:pk>",CookbookDetailAV.as_view(),name='cookbook-detail'),
     path("receipecookbook/", ReceipeCookbookAV.as_view(), name='receipe-cookbook-list'),
     path("receipe/<int:pk>", ReceipeDetailAV.as_view(), name='receipe-detail'),
-    path("receipe/new", ReceipeNewAV.as_view(), name='receipe-new'),
+    path("receipe/create", ReceipeNewAV.as_view(), name='receipe-new'),
     path("cookbook/<int:pk>", CookbookDetailAV.as_view(), name='cookbook-detail'),
-    path("cookbook/new", CookbookNewAV.as_view(), name='cookbook-new'),
+    path("cookbook/create", CookbookNewAV.as_view(), name='cookbook-new'),
     path("receipecookbook/<int:pk>", ReceipeCookbookDetailAV.as_view(), name='receipe-cookbook-detail'),
-    path("receipecookbook/new", ReceipeCookbookNewAV.as_view(), name='receipe-cookbook-new'),
+    path("receipecookbook/create", ReceipeCookbookNewAV.as_view(), name='receipe-cookbook-new'),
 ]
