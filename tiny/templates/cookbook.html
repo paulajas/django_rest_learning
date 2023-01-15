@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+{% block content %}
+
+<h1> Cookbook </h1>
+
+<ul>
+    <form action="{{ base_url }}/cookbook/new">
+        <input type="submit" value="Create new cookbook" />
+    </form>
+    {% for item in items %}
+    <li>{{item.name}}<form action="{{ base_url }}/cookbook/{{item.pk}}">
+            <input type="submit" value="Change {{item.name}}" />
+        </form>
+    {% endfor %}
+</ul>
+
+{% endblock %}

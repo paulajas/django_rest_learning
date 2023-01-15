@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+{% block content %}
+
+<h1> Receipies </h1>
+
+<ul>
+    <form action="{{ base_url }}/receipe/new">
+        <input type="submit" value="Create new receipe" />
+    </form>
+    {% for receipe in receipies %}
+    <li>{{receipe.name}}<form action="{{ base_url }}/receipe/{{receipe.pk}}">
+            <input type="submit" value="Change {{receipe.pk}}" />
+        </form>
+    {% endfor %}
+</ul>
+
+{% endblock %}

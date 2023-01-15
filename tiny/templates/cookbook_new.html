@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+<h1>New cookbook</h1>
+
+<form action="{% url 'cookbook-new' %}" method="POST">
+    {% csrf_token %}
+
+    <label for="name">Nazwa:*</label>
+    <input type="text" name="name" id="name" required/>
+    <span id="errorname"></span>
+    <br/>
+    <label for="rate">Ocena:</label>
+    <input type="number" name="rate" id="rate" min="1" max="10" step="1" required/>
+    <br/>
+    <span id="erroratext"></span>
+    <br/>
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

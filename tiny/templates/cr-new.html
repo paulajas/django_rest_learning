@@ -1,0 +1,27 @@
+{% extends "index.html" %}
+{% load rest_framework %}
+
+{% block content %}
+
+<h1>New receipe</h1>
+
+<form action="{% url 'receipe-cookbook-new' %}" method="POST">
+    {% csrf_token %}
+    <label for="make_date">Date:</label>
+    <input type="text" name="make_date" id="make_date"/>
+    <br/>
+    <label for="rate">Rate:*</label>
+    <input type="number" name="rate" id="rate" min="1" max="10" step="1" required/>
+    <br/>
+    <span id="erroratext"></span>
+    <br/>
+    <label for="receipe">Receipe:*</label>
+    <input type="number" name="receipe" id="receipe" required/>
+    <br/>
+    <label for="cookbook">Cookbook:*</label>
+    <input type="number" name="cookbook" id="cookbook" required/>
+    <br/>
+
+    <input type="submit" value="Save">
+</form>
+{% endblock %}
