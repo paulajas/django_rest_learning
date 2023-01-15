@@ -5,13 +5,33 @@
 
 <ul>
     <form action="{{ base_url }}/receipe/create">
-        <input type="submit" value="Create new receipe" />
+        <input type="submit" value="Create new receipe" class="btn btn-secondary" style="float: right; margin:10px;"/>
     </form>
+
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Alcohol</th>
+            <th scope="col">Creation Date</th>
+          </tr>
+        </thead>
+
     {% for receipe in receipies %}
-    <li>{{receipe.name}}<form action="{{ base_url }}/receipe/{{receipe.pk}}">
-            <input type="submit" value="Change {{receipe.pk}}" />
-        </form>
-    {% endfor %}
-</ul>
+    <tbody>
+        <tr>
+          <th scope="row">{{receipe.pk}}</th>
+          <td>{{receipe.name}}</td>
+          <td>{{receipe.alcohol}}</td>
+          <td>{{receipe.creation_date}}</td>
+          <td>
+            <form action="{{ base_url }}/receipe/{{receipe.pk}}/change/"><input type="submit" value="Change {{receipe.pk}}" class="btn btn-secondary" /></form>
+            <form action="{{ base_url }}/receipe/{{receipe.pk}}/"><input type="submit" value="See receipe" class="btn btn-secondary" /></form>
+        </td>
+        </tr>
+    {% endfor %}     
+</tbody>
+</table>
 
 {% endblock %}

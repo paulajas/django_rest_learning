@@ -13,8 +13,8 @@ from rest_framework import status
 class ReceipeSerializer(serializers.Serializer):
 
     pk = serializers.IntegerField(read_only=True)
-    text_receipe=serializers.CharField(required=True)
-    alcohol=serializers.BooleanField(required=False)
+    text_receipe=serializers.CharField(style={'base_template': 'textarea.html'}, required=True)
+    alcohol=serializers.BooleanField()
     name=serializers.CharField(required=True)
     creation_date = serializers.DateTimeField(read_only=True)
 

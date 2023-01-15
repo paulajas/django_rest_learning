@@ -181,6 +181,15 @@ class CookbookDetailAV(APIView):
                 return Response({'serializer': serializer, 'cookbook': cookbook})
             serializer.save()
         return redirect('cookbook-list')
+class ReceipeDetailGetAV(APIView):
+
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'r-detail.html'
+
+    def get(self, request, pk):
+        item = get_object_or_404(Receipe, pk=pk)
+        serializer = ReceipeSerializer(item)
+        return Response({'serializer': serializer, 'item': item})
 
 
 class ReceipeDetailAV(APIView):

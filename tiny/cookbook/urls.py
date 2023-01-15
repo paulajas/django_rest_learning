@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 
 from cookbook.views import ReceipeAV, CookbookAV, ReceipeCookbookAV, ReceipeNewAV, CookbookNewAV
-from cookbook.views import ReceipeDetailAV, CookbookDetailAV, ReceipeCookbookDetailAV, ReceipeCookbookNewAV
+from cookbook.views import ReceipeDetailAV, CookbookDetailAV, ReceipeCookbookDetailAV, ReceipeCookbookNewAV, ReceipeDetailGetAV
 
 urlpatterns = [
     path("receipe/",ReceipeAV.as_view(),name='receipe-list'),
@@ -25,7 +25,8 @@ urlpatterns = [
     path("cookbook/",CookbookAV.as_view(),name='cookbook-list'),
     # path("cookbook/<int:pk>",CookbookDetailAV.as_view(),name='cookbook-detail'),
     path("receipecookbook/", ReceipeCookbookAV.as_view(), name='receipe-cookbook-list'),
-    path("receipe/<int:pk>", ReceipeDetailAV.as_view(), name='receipe-detail'),
+    path("receipe/<int:pk>/change/", ReceipeDetailAV.as_view(), name='receipe-detail'),
+    path("receipe/<int:pk>/", ReceipeDetailGetAV.as_view(), name='receipe-detail'),
     path("receipe/create", ReceipeNewAV.as_view(), name='receipe-new'),
     path("cookbook/<int:pk>", CookbookDetailAV.as_view(), name='cookbook-detail'),
     path("cookbook/create", CookbookNewAV.as_view(), name='cookbook-new'),
