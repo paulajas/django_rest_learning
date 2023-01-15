@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<h1>Receipe - {{ item.receipe.name }} in Cookbook - {{ item.receipe.name }}</h1>
+<h1>Receipe - {{ item.receipe.name }} in Cookbook - {{ item.cookbook.name }}</h1>
 
 <form action="{% url 'receipe-cookbook-detail' pk=item.pk %}" method="POST">
     {% csrf_token %}

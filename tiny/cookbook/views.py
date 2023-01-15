@@ -6,7 +6,7 @@ from rest_framework.renderers import TemplateHTMLRenderer
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
 
-from .serializers import CookbookSerializer, ReceipeSerializer, ReceipeCookbookSerializer
+from .serializers import CookbookSerializer, ReceipeCookbookNewSerializer, ReceipeSerializer, ReceipeCookbookSerializer
 from .models import Receipe, Cookbook, ReceipeCookbook
 
 # Create your views here.
@@ -233,7 +233,7 @@ class ReceipeCookbookDetailAV(APIView):
 
     def post(self, request, pk):
         item = ReceipeCookbook.objects.get(pk=pk)
-        serializer = ReceipeCookbookSerializer(item, data=request.data)
+        serializer = ReceipeCookbookSerializer(item, data=request.data, context={'request': request})
         if not serializer.is_valid():
             return Response({'serializer': serializer, 'profile': item})
         serializer.save()
@@ -261,9 +261,7 @@ class ReceipeCookbookNewAV(APIView):
         return Response({"error": "Nothing to show"}, status=status.HTTP_200_OK)
 
     def post(self,request):
-        COOKBOOK_GLOB = request.data['cookbook']
-        RECEIPE_GLOB = request.data['receipe']
-        serializer=ReceipeCookbookSerializer(data=request.data)
+        serializer=ReceipeCookbookSerializer(data=request.data, context={'receip': request.data['receipe'], 'cook':request.data['cookbook']})
         if serializer.is_valid():
             serializer.save()
             return redirect('receipe-cookbook-list')
