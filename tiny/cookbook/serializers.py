@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework import status
+from rest_framework.validators import UniqueValidator
+from django.contrib.auth.models import User
 
 
 class ReceipeSerializer(serializers.Serializer):
@@ -114,3 +116,29 @@ class ReceipeCookbookSerializer(serializers.Serializer):
         instance.make_date = validated_data.get('name', instance.make_date)
         instance.save()
         return instance
+
+class ReceipeReactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Receipe
+        fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    username = serializers.CharField(
+                max_length=32,
+                validators=[UniqueValidator(queryset=User.objects.all())]
+                )
+    password = serializers.CharField(min_length=8)
+
+    def create(self, validated_data):
+        user = User.objects.create_user(validated_data['username'], validated_data['email'],
+                                        validated_data['password'])
+        return user
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'password')

@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from cookbook.views import ReceipeAV, CookbookAV, ReceipeCookbookAV, ReceipeNewAV, CookbookNewAV
+from cookbook.views import ReceipeAV, CookbookAV, ReceipeCookbookAV, ReceipeNewAV, CookbookNewAV, ReceipeReactAV
 from cookbook.views import ReceipeDetailAV, CookbookDetailAV, ReceipeCookbookDetailAV, ReceipeCookbookNewAV, ReceipeDetailGetAV
 
 urlpatterns = [

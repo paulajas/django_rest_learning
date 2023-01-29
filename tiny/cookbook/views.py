@@ -5,8 +5,14 @@ from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from django.shortcuts import redirect
 from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+from .serializers import UserSerializer
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
-from .serializers import CookbookSerializer, ReceipeCookbookNewSerializer, ReceipeSerializer, ReceipeCookbookSerializer
+
+
+from .serializers import CookbookSerializer, ReceipeCookbookNewSerializer, ReceipeReactSerializer, ReceipeSerializer, ReceipeCookbookSerializer
 from .models import Receipe, Cookbook, ReceipeCookbook
 
 # Create your views here.
@@ -242,6 +248,7 @@ class ReceipeCookbookDetailAV(APIView):
         return Response({'serializer':serializer, 'item': item})
     
     def put(self, request, pk):
+        print("just put")
         country = ReceipeCookbook.objects.get(pk=pk)
         serializer = ReceipeCookbookSerializer(country, data = request.data)
         if serializer.is_valid():
@@ -282,3 +289,60 @@ class ReceipeCookbookNewAV(APIView):
             return redirect('receipe-cookbook-list')
         else:
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+################################################################################################3
+
+
+class ReceipeReactAV(viewsets.ModelViewSet):
+    
+    serializer_class = ReceipeReactSerializer
+    queryset = Receipe.objects.all()
+
+
+    def get(self, request):
+        try:
+            receipe=Receipe.objects.all()
+            serializer = ReceipeSerializer(receipe, many=True,context={'request': request})
+            return Response({'receipies': serializer.data}, status=status.HTTP_200_OK)
+        except Receipe.DoesNotExist:
+            return Response({"error: Nothing to show"}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self,request):
+        serializer=ReceipeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(status=status.HTTP_200_ACCEPTED)
+
+    def put(self,request,pk):
+        receipe = Receipe.objects.get(pk=pk)
+        serializer = ReceipeSerializer(receipe, data = request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self,request,pk):
+        receipe = Receipe.objects.get(pk=pk)
+        receipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserCreate(APIView):
+    """ 
+    Creates the user. 
+    """
+
+    def post(self, request, format='json'):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            if user:
+                token = Token.objects.create(user=user)
+                json = serializer.data
+                json['token'] = token.key
+                return Response(json, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
